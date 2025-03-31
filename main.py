@@ -8,12 +8,15 @@ from PyQt6.QtSql import QSqlDatabase, QSqlTableModel
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QMessageBox
 from PyQt6 import uic
 
+from main_screen import Ui_MainWindow
+from addEditCoffeeForm import Ui_Form
 
-class AddWidget(QWidget):
+
+class AddWidget(QWidget, Ui_Form):
     def __init__(self, parent=None, changed_line=None):
         super().__init__(parent)
         self.params = self.set_params()
-        uic.loadUi("addEditCoffeeForm.ui", self)
+        self.setupUi(self)
         self.changed_line = changed_line
         self.save.clicked.connect(self.update_db)
 
@@ -29,24 +32,24 @@ class AddWidget(QWidget):
     def update_db(self):
         if not self.changed_line:
             query = f"""
-        INSERT INTO coffee 
-        (sort_name, roasting, milled, taste_desc, price, volume)
-        VALUES
-        ({self.sort_name.text()}, {self.roasting.text()}, {self.milled.text()}, 
-         {self.taste.text()}, {self.price.text()}, {self.volume.text()})
-        """
+                INSERT INTO coffee 
+                (sort_name, roasting, milled, taste_desc, price, volume)
+                VALUES
+                ({self.sort_name.text()}, {self.roasting.text()}, {self.milled.text()}, 
+                {self.taste.text()}, {self.price.text()}, {self.volume.text()})
+            """
         else:
             query = f"""
-        UPDATE coffee 
-        SET 
-            sort_name = "{self.sort_name.text()}",
-            roasting = {int(self.roasting.text())},
-            milled = {int(self.milled.text())},
-            taste_desc = "{self.taste.text()}",
-            price = {int(self.price.text())},
-            volume = {float(self.volume.text())}
-        WHERE id = {self.params[self.changed_line - 1][0]};
-        """
+                UPDATE coffee 
+                SET 
+                    sort_name = "{self.sort_name.text()}",
+                    roasting = {int(self.roasting.text())},
+                    milled = {int(self.milled.text())},
+                    taste_desc = "{self.taste.text()}",
+                    price = {int(self.price.text())},
+                    volume = {float(self.volume.text())}
+                WHERE id = {self.params[self.changed_line - 1][0]};
+            """
         try:
             with sqlite3.connect(self.parent().db.databaseName()) as con:
                 con.cursor().execute(query).fetchall()
@@ -69,13 +72,13 @@ class AddWidget(QWidget):
             return data
 
 
-class InteractiveReceipt(QMainWindow):
+class InteractiveReceipt(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         # f = io.StringIO(template)
-        uic.loadUi("main.ui", self)
+        self.setupUi(self)
         self.db = QSqlDatabase.addDatabase("QSQLITE")
-        self.db.setDatabaseName("coffee.sqlite")
+        self.db.setDatabaseName("data/coffee.sqlite")
 
         self.load_data()
 
